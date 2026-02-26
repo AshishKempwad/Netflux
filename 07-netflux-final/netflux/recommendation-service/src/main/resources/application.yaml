@@ -1,0 +1,21 @@
+server:
+  port: 8080
+---
+spring:
+  jpa:
+    defer-datasource-initialization: true
+  cloud:
+    function:
+      definition: genreUpdatedEventConsumer;movieAddedEventConsumer
+    stream:
+      bindings:
+        genreUpdatedEventConsumer-in-0:
+          destination: customer-events
+          group: recommendation-service
+        movieAddedEventConsumer-in-0:
+          destination: movie-events
+          group: recommendation-service
+      kafka:
+        binder:
+          brokers:
+            - localhost:9092

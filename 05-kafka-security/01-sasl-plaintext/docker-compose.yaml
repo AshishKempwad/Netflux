@@ -1,0 +1,13 @@
+services:
+  kafka:
+    image: apache/kafka:4.1.1
+    container_name: kafka
+    working_dir: /opt/kafka/bin/
+    ports:
+    - 9092:9092
+    env_file:
+    - ./env/server.env      
+    environment:
+      KAFKA_OPTS: "-Djava.security.auth.login.config=/opt/kafka/config/jaas.conf"
+    volumes:
+    - ./conf/jaas.conf:/opt/kafka/config/jaas.conf

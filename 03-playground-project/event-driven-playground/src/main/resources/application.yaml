@@ -1,0 +1,11 @@
+spring:
+  config:
+    import: ${section}/${config}.yaml
+
+# 'section' and 'config' should be provided.
+# Example:
+# SpringApplication.run(
+#     SectionRunner.class,
+#     "--section=sec01",
+#     "--config=03-consumer-group"
+# );

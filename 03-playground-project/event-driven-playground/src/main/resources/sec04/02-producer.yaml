@@ -1,0 +1,10 @@
+spring:
+  cloud:
+    stream:
+      bindings:
+        ping-out:
+          destination: demo-topic
+      kafka:
+        binder:
+          brokers:
+          - localhost:9092

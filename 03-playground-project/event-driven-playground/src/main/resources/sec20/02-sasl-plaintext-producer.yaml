@@ -1,0 +1,21 @@
+spring:
+  cloud:
+    function:
+      definition: producer
+    stream:
+      poller:
+        fixed-delay: 1000 # default value
+      bindings:
+        producer-out-0:
+          destination: demo-topic
+      kafka:
+        binder:
+          brokers:
+          - localhost:9092
+          configuration:
+            security.protocol: SASL_PLAINTEXT
+            sasl.mechanism: PLAIN
+            sasl.jaas.config: >
+              org.apache.kafka.common.security.plain.PlainLoginModule required
+              username="app-user"
+              password="secret123";

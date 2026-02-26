@@ -1,0 +1,46 @@
+package com.vinsguru.playground.sec14.processor;
+
+import com.vinsguru.playground.sec14.dto.DigitalDelivery;
+import com.vinsguru.playground.sec14.dto.Order;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.MessageBuilder;
+
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Gatherers;
+
+@Configuration
+@ConditionalOnProperty(
+        name = "processing.mode",
+        havingValue = "unordered"
+)
+public class UnorderedMessageProcessorConfig {
+
+    private static final Logger log = LoggerFactory.getLogger(UnorderedMessageProcessorConfig.class);
+    private static final String SPRING_CLOUD_STREAM_DESTINATION = "spring.cloud.stream.sendto.destination";
+    private static final String DIGITAL_OUT = "digital-delivery-out";
+    private static final String PHYSICAL_OUT = "physical-delivery-out";
+    private static final int MAX_CONCURRENCY = 500;
+
+    @Bean
+    public Function<List<Order>, List<Message<Object>>> deliveryProcessor(DeliveryService deliveryService) {
+        return orders -> orders.stream()
+                .gather(Gatherers.mapConcurrent(MAX_CONCURRENCY, deliveryService::toDelivery))
+                .map(this::toMessage)
+                .toList();
+    }
+
+    private Message<Object> toMessage(Object payload) {
+        log.info("dispatching: {}", payload);
+        var destination = (payload instanceof DigitalDelivery) ? DIGITAL_OUT : PHYSICAL_OUT;
+        return MessageBuilder.withPayload(payload)
+                             .setHeader(SPRING_CLOUD_STREAM_DESTINATION, destination)
+                             .build();
+    }
+
+}

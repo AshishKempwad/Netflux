@@ -1,0 +1,16 @@
+spring:
+  cloud:
+    function:
+      definition: messageConsumer
+    stream:
+      bindings:
+        messageConsumer-in-0:
+          destination: demo-topic
+          group: demo-group
+      kafka:
+        binder:
+          brokers:
+          - localhost:9092
+          consumer-properties:
+            auto.offset.reset: earliest
+            key.deserializer: org.apache.kafka.common.serialization.StringDeserializer
