@@ -14,6 +14,7 @@ import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.Message;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.client.RestTestClient;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
@@ -44,7 +45,33 @@ public class MovieEventKafkaTest {
     private BlockingQueue<Message<MovieAddedEvent>> queue;
 
     @Test
-    public void movieAddedEvent() {
+    public void movieAddedEvent() throws InterruptedException {
+        var json = """
+                {"title":"Four Rooms","voteAverage":5.784,"voteCount":2436,"releaseDate":"1995-12-09","revenue":4257354,"runtime":98,"backdropPath":"/f2t4JbUvQIjUF5FstG1zZFAp02N.jpg","budget":4000000,"homepage":"https://www.miramax.com/movie/four-rooms/","overview":"It's Ted the Bellhop's first night on the job...and the hotel's very unusual guests are about to place him in some outrageous predicaments. It seems that this evening's room service is serving up one unbelievable happening after another.","popularity":15.295,"posterPath":"/75aHn1NOYXh4M7L5shoeQ6NGykP.jpg","genres":["Comedy"]}
+                """;
+        var request = JsonMapper.shared()
+                .readValue(json, MovieDetails.class);
+
+        var response = this.testClient
+                .post()
+                .uri("/api/movies")
+                .body(request)
+                .exchange()
+                .expectStatus().is2xxSuccessful()
+                .returnResult(MovieDetails.class)
+                .getResponseBody();
+
+        //validate the movie response
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals("Four Rooms",response.title());
+
+        //validate the movie added event
+        var message = this.queue.poll(5,TimeUnit.SECONDS);
+        var event = message.getPayload();
+        var headers = message.getHeaders();
+        Assertions.assertEquals(response.id(),headers.get(KafkaHeaders.RECEIVED_KEY, Integer.class));
+        Assertions.assertEquals(response.id(),event.movieId());
+        Assertions.assertEquals(response.title(),event.title());
 
     }
 
