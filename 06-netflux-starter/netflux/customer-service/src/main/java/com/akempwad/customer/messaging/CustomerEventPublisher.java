@@ -8,6 +8,9 @@ import org.springframework.context.event.EventListener;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionalEventListener;
+
+import static org.springframework.transaction.event.TransactionPhase.AFTER_COMMIT;
 
 @Component
 public class CustomerEventPublisher {
@@ -20,7 +23,7 @@ public class CustomerEventPublisher {
         this.streamBridge = streamBridge;
     }
 
-    @EventListener
+    @TransactionalEventListener(phase = AFTER_COMMIT)
     public void onGenreUpdatedEvent(CustomerGenreUpdatedEvent genreUpdatedEvent) {
         var message = MessageBuilder.withPayload(genreUpdatedEvent)
                 .setHeader(KafkaHeaders.KEY, genreUpdatedEvent.customerId())

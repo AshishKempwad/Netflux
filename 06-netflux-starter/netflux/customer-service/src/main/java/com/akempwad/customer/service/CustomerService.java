@@ -29,7 +29,7 @@ public class CustomerService {
                 .orElseThrow(() -> new CustomerNotFoundException(customerId));
     }
 
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Transactional
     public void updateCustomerGenre(Integer customerId, GenreUpdateRequest request) {
         var customer = this.customerRepository.findById(customerId)
                 .orElseThrow(() -> new CustomerNotFoundException(customerId));
